@@ -5,7 +5,7 @@ end
 -- ==================== SETTINGS ====================
 -- 1) Upload this file to your GitHub repo (name it yanny_hub.lua)
 -- 2) Click "Raw" on the file and paste that link below
-local SCRIPT_URL = "https://raw.githubusercontent.com/YOURUSERNAME/YannyScripts/main/yanny_hub.lua"
+local SCRIPT_URL = "https://raw.githubusercontent.com/jackyanny/YannyScripts/main/yanny_hub.lua"
 
 local CONFIG_FILE = "YannyScripts_Config.json"
 
