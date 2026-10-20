@@ -3,9 +3,6 @@ if not game:IsLoaded() then
 end
 
 -- ==================== SETTINGS ====================
--- Upload this file to your GitHub repo as yanny_potions.lua
-local SCRIPT_URL = "https://raw.githubusercontent.com/jackyanny/YannyScripts/main/yanny_potions.lua"
-
 local CONFIG_FILE = "YannyPotions_Config.json"
 local POTION_IDS = { "12", "13" }   -- Power Potion, Damage Potion
 local ITEM_DELAY = 0.5              -- seconds between each purchase
@@ -16,9 +13,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
-local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
 local env = (getgenv and getgenv()) or _G
@@ -39,7 +34,7 @@ end
 
 -- ==================== SAVED SETTINGS ====================
 local canSave = (writefile and readfile and isfile) and true or false
-local cfg = { autoBuy = false, autoExec = true }
+local cfg = { autoBuy = false }
 
 do
 	local saved
@@ -56,12 +51,8 @@ do
 	if not saved and type(env.YannyPotionsConfig) == "table" then
 		saved = env.YannyPotionsConfig
 	end
-	if saved then
-		for _, key in ipairs({ "autoBuy", "autoExec" }) do
-			if type(saved[key]) == "boolean" then
-				cfg[key] = saved[key]
-			end
-		end
+	if saved and type(saved.autoBuy) == "boolean" then
+		cfg.autoBuy = saved.autoBuy
 	end
 end
 
@@ -111,26 +102,6 @@ local function startLoop()
 	end)
 end
 
--- ==================== AUTO EXECUTE ON REJOIN ====================
-local queueFn = queue_on_teleport
-	or (syn and syn.queue_on_teleport)
-	or (fluxus and fluxus.queue_on_teleport)
-
-local queued = false
-
-connect(player.OnTeleport, function(state)
-	if cfg.autoExec and queueFn and not queued and state == Enum.TeleportState.Started then
-		queued = true
-		pcall(queueFn, string.format('loadstring(game:HttpGet("%s"))()', SCRIPT_URL))
-	end
-end)
-
-connect(TeleportService.TeleportInitFailed, function(plr)
-	if plr == player then
-		queued = false
-	end
-end)
-
 -- ==================== UI ====================
 local BG = Color3.fromRGB(18, 16, 28)
 local PURPLE = Color3.fromRGB(104, 84, 255)
@@ -157,8 +128,8 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 190, 0, 148)
-frame.Position = UDim2.new(0, 20, 0.5, -74)
+frame.Size = UDim2.new(0, 190, 0, 108)
+frame.Position = UDim2.new(0, 20, 0.5, -54)
 frame.BackgroundColor3 = BG
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -212,7 +183,7 @@ buttonCorner.Parent = button
 
 local sub = Instance.new("TextLabel")
 sub.Size = UDim2.new(1, 0, 0, 16)
-sub.Position = UDim2.new(0, 0, 0, 128)
+sub.Position = UDim2.new(0, 0, 0, 86)
 sub.BackgroundTransparency = 1
 sub.Text = "Power + Damage Potion"
 sub.TextColor3 = MUTED
@@ -220,49 +191,10 @@ sub.Font = Enum.Font.Gotham
 sub.TextSize = 10
 sub.Parent = frame
 
-local autoButton = Instance.new("TextButton")
-autoButton.Size = UDim2.new(1, -24, 0, 34)
-autoButton.Position = UDim2.new(0, 12, 0, 88)
-autoButton.BackgroundColor3 = PURPLE_OFF
-autoButton.Text = "Auto Execute: OFF"
-autoButton.TextColor3 = Color3.new(1, 1, 1)
-autoButton.Font = Enum.Font.GothamBold
-autoButton.TextSize = 13
-autoButton.AutoButtonColor = false
-autoButton.Parent = frame
-
-local autoCorner = Instance.new("UICorner")
-autoCorner.CornerRadius = UDim.new(0, 10)
-autoCorner.Parent = autoButton
-
-local function notify(text)
-	pcall(function()
-		StarterGui:SetCore("SendNotification", { Title = "Yanny Scripts", Text = text, Duration = 5 })
-	end)
-end
-
 local function render()
 	button.Text = cfg.autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 	tween(button, { BackgroundColor3 = cfg.autoBuy and PURPLE or PURPLE_OFF })
-	autoButton.Text = cfg.autoExec and "Auto Execute: ON" or "Auto Execute: OFF"
-	tween(autoButton, { BackgroundColor3 = cfg.autoExec and PURPLE or PURPLE_OFF })
 end
-
-connect(autoButton.MouseButton1Click, function()
-	if not cfg.autoExec and not queueFn then
-		notify("Your executor doesn't support auto execute (queue_on_teleport).")
-		return
-	end
-	cfg.autoExec = not cfg.autoExec
-	saveConfig()
-	render()
-end)
-connect(autoButton.MouseEnter, function()
-	tween(autoButton, { BackgroundColor3 = cfg.autoExec and PURPLE_HOVER or Color3.fromRGB(78, 68, 140) })
-end)
-connect(autoButton.MouseLeave, function()
-	tween(autoButton, { BackgroundColor3 = cfg.autoExec and PURPLE or PURPLE_OFF })
-end)
 
 connect(button.MouseButton1Click, function()
 	cfg.autoBuy = not cfg.autoBuy
